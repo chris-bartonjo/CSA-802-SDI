@@ -1,0 +1,9 @@
+{
+  "books": {
+    "B001": {"book_id": "B001", "title": "Things Fall Apart", "author": "Chinua Achebe", "isbn": "9780385474542", "price": 950, "stock": 12},
+    "B002": {"book_id": "B002", "title": "Petals of Blood", "author": "Ngugi wa Thiong'o", "isbn": "9780143039174", "price": 1200, "stock": 5},
+    "B003": {"book_id": "B003", "title": "The River Between", "author": "Ngugi wa Thiong'o", "isbn": "9780435905484", "price": 850, "stock": 0},
+    "B004": {"book_id": "B004", "title": "Clean Code", "author": "Robert C. Martin", "isbn": "9780132350884", "price": 4500, "stock": 3},
+    "B005": {"book_id": "B005", "title": "Designing Data-Intensive Applications", "author": "Martin Kleppmann", "isbn": "9781449373320", "price": 6200, "stock": 2}
+  }
+}

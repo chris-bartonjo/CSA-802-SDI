@@ -1,0 +1,262 @@
+openapi: 3.0.3
+info:
+  title: Bookstore Integration API
+  version: 1.0.0
+  description: >
+    One REST front door over three mock subsystems of a bookstore. Inventory holds book details and
+    stock, Sales holds orders and payments, and Delivery holds order deliveries. All data is JSON.
+    Every /api endpoint except /api/health needs the X-API-Key header.
+servers:
+  - url: http://127.0.0.1:5055
+security:
+  - ApiKeyAuth: []
+tags:
+  - name: Inventory
+  - name: Sales
+  - name: Delivery
+
+paths:
+  /api/health:
+    get:
+      summary: Health check
+      security: []
+      responses:
+        "200":
+          description: The API is running
+          content:
+            application/json:
+              example: {status: ok}
+
+  /api/books:
+    get:
+      tags: [Inventory]
+      summary: List all books
+      responses:
+        "200":
+          description: All books with price and stock
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  books: {type: array, items: {$ref: "#/components/schemas/Book"}}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+
+  /api/books/{book_id}:
+    get:
+      tags: [Inventory]
+      summary: Get book details from the Inventory System
+      parameters:
+        - {name: book_id, in: path, required: true, schema: {type: string}, example: B001}
+      responses:
+        "200":
+          description: The book
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Book"}
+              example: {book_id: B001, title: Things Fall Apart, author: Chinua Achebe, isbn: "9780385474542", price: 950, stock: 12}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "404": {$ref: "#/components/responses/NotFound"}
+
+  /api/orders:
+    post:
+      tags: [Sales]
+      summary: Place an order and process payment
+      description: >
+        Checks stock in Inventory, charges the payment in Sales, reduces stock, records the order and
+        creates a pending delivery in the Delivery System. Use token "tok_declined" to simulate a
+        declined payment.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/OrderRequest"}
+            example:
+              customer: {name: Amina Wanjiru, email: amina@example.com}
+              items: [{book_id: B001, quantity: 2}, {book_id: B004, quantity: 1}]
+              payment: {method: mpesa, token: tok_test_123}
+              delivery_address: 12 Moi Avenue, Nairobi
+      responses:
+        "201":
+          description: Order placed, paid and sent to Delivery
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/OrderResult"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "402":
+          description: Payment declined
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Error"}
+              example: {error: {code: payment_declined, message: The payment was declined by the provider}}
+        "404": {$ref: "#/components/responses/NotFound"}
+        "409":
+          description: Not enough stock
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Error"}
+              example: {error: {code: insufficient_stock, message: "Only 0 of B003 in stock, 1 requested"}}
+
+  /api/orders/{order_id}:
+    get:
+      tags: [Sales]
+      summary: Get an order
+      parameters:
+        - {name: order_id, in: path, required: true, schema: {type: string}, example: ORD-1001}
+      responses:
+        "200":
+          description: The order
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Order"}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "404": {$ref: "#/components/responses/NotFound"}
+
+  /api/deliveries/{delivery_id}:
+    get:
+      tags: [Delivery]
+      summary: Get a delivery
+      parameters:
+        - {name: delivery_id, in: path, required: true, schema: {type: string}, example: DEL-0001}
+      responses:
+        "200":
+          description: The delivery
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Delivery"}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "404": {$ref: "#/components/responses/NotFound"}
+    put:
+      tags: [Delivery]
+      summary: Update delivery details in the Delivery System
+      parameters:
+        - {name: delivery_id, in: path, required: true, schema: {type: string}, example: DEL-0001}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/DeliveryUpdate"}
+            example: {status: dispatched, courier: G4S Courier, tracking_number: G4S-778812}
+      responses:
+        "200":
+          description: The updated delivery
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/Delivery"}
+        "400": {$ref: "#/components/responses/BadRequest"}
+        "401": {$ref: "#/components/responses/Unauthorized"}
+        "404": {$ref: "#/components/responses/NotFound"}
+
+components:
+  securitySchemes:
+    ApiKeyAuth: {type: apiKey, in: header, name: X-API-Key}
+
+  responses:
+    BadRequest:
+      description: The request body is missing or invalid
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/Error"}
+          example: {error: {code: invalid_request, message: items must be a non-empty list}}
+    Unauthorized:
+      description: Missing or wrong API key
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/Error"}
+          example: {error: {code: unauthorized, message: A valid X-API-Key header is required}}
+    NotFound:
+      description: The resource does not exist
+      content:
+        application/json:
+          schema: {$ref: "#/components/schemas/Error"}
+          example: {error: {code: book_not_found, message: No book with id B999}}
+
+  schemas:
+    Book:
+      type: object
+      properties:
+        book_id: {type: string}
+        title: {type: string}
+        author: {type: string}
+        isbn: {type: string}
+        price: {type: number, description: Price in KES}
+        stock: {type: integer}
+    OrderRequest:
+      type: object
+      required: [customer, items, payment, delivery_address]
+      properties:
+        customer:
+          type: object
+          required: [name, email]
+          properties: {name: {type: string}, email: {type: string, format: email}}
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [book_id, quantity]
+            properties: {book_id: {type: string}, quantity: {type: integer, minimum: 1}}
+        payment:
+          type: object
+          required: [method, token]
+          properties:
+            method: {type: string, enum: [card, mpesa]}
+            token: {type: string}
+        delivery_address: {type: string}
+    OrderLine:
+      type: object
+      properties:
+        book_id: {type: string}
+        title: {type: string}
+        unit_price: {type: number}
+        quantity: {type: integer}
+        line_total: {type: number}
+    Order:
+      type: object
+      properties:
+        order_id: {type: string}
+        customer: {type: object}
+        items: {type: array, items: {$ref: "#/components/schemas/OrderLine"}}
+        total: {type: number}
+        payment_id: {type: string}
+        status: {type: string}
+        created_at: {type: string, format: date-time}
+    Payment:
+      type: object
+      properties:
+        payment_id: {type: string}
+        method: {type: string}
+        amount: {type: number}
+        status: {type: string}
+        processed_at: {type: string, format: date-time}
+    Delivery:
+      type: object
+      properties:
+        delivery_id: {type: string}
+        order_id: {type: string}
+        address: {type: string}
+        status: {type: string, enum: [pending, dispatched, in_transit, delivered, cancelled]}
+        courier: {type: string, nullable: true}
+        tracking_number: {type: string, nullable: true}
+        updated_at: {type: string, format: date-time}
+    DeliveryUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        status: {type: string, enum: [pending, dispatched, in_transit, delivered, cancelled]}
+        courier: {type: string}
+        tracking_number: {type: string}
+        address: {type: string}
+    OrderResult:
+      type: object
+      properties:
+        order: {$ref: "#/components/schemas/Order"}
+        payment: {$ref: "#/components/schemas/Payment"}
+        delivery: {$ref: "#/components/schemas/Delivery"}
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties: {code: {type: string}, message: {type: string}}

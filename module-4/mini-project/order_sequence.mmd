@@ -1,0 +1,18 @@
+%% POST /api/orders: how one request is integrated across the three systems.
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant A as Integration API
+    participant I as Inventory
+    participant S as Sales
+    participant D as Delivery
+    C->>A: POST /api/orders (JSON + X-API-Key)
+    A->>A: Check key and validate body
+    A->>I: Price items and check stock
+    I-->>A: Priced lines (or 404 / 409)
+    A->>S: Charge payment
+    S-->>A: Payment captured (or 402)
+    A->>I: Reserve stock
+    A->>S: Record order
+    A->>D: Create pending delivery
+    A-->>C: 201 Created (order + payment + delivery)

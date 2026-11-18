@@ -1,0 +1,25 @@
+%% Bookstore integration API: one REST front door over three separate mock systems.
+flowchart LR
+    C["Client<br/>Postman · cURL · web shop"]
+    subgraph API["Bookstore Integration API (Flask)"]
+        direction TB
+        AUTH["API key check<br/>X-API-Key"]
+        R["REST endpoints<br/>JSON in · JSON out"]
+        AUTH --> R
+    end
+    INV["Inventory System<br/>inventory.json"]
+    SAL["Sales System<br/>sales.json"]
+    DEL["Delivery System<br/>deliveries.json"]
+    DOC["Swagger UI<br/>/docs · openapi.yaml"]
+
+    C -- "HTTPS + JSON" --> AUTH
+    R -- "books · stock" --> INV
+    R -- "orders · payments" --> SAL
+    R -- "deliveries" --> DEL
+    C -. "reads" .-> DOC
+
+    classDef sys fill:#ffffff,stroke:#333333,stroke-width:1.5px,color:#111111
+    classDef mid fill:#eef3fb,stroke:#1f4e8c,stroke-width:1.5px,color:#111111
+    class C,INV,SAL,DEL,DOC sys
+    class AUTH,R mid
+    style API fill:#fbfcfe,stroke:#1f4e8c,stroke-width:2px

@@ -1,0 +1,3 @@
+# Runtime copies of the seed data (recreated on every server start and test run)
+data/runtime/
+.pytest_cache/
