@@ -1,6 +1,6 @@
 # CSA 802: Systems and Data Integration
 
-Practical work for CSA 802, organised by module.
+Practical work for CSA 802 organised by module.
 
 | Module | Topic | Work |
 |---|---|---|
