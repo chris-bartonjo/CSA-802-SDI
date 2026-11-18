@@ -1,0 +1,17 @@
+Loaded: {'customers': 7, 'products': 7, 'orders': 10, 'rejected_records': 7}
+
+Rejected records:
+  [customers] missing first or last name: 109
+  [products] missing or invalid price: {'product_id': 'P005', 'name': 'HD Webcam', 'price': '', 'stock_qty': '20'}
+  [products] duplicate product_id (first row kept): {'product_id': 'P002', 'name': 'USB-C Hub (duplicate row)', 'price': '3400', 'stock_qty': '10'}
+  [orders] unknown customer_id: {'order_id': '5010', 'customer_id': '110', 'product_id': 'P001', 'order_date': '2026-10-16', 'quantity': '1'}
+  [orders] unknown or rejected product_id: {'order_id': '5011', 'customer_id': '105', 'product_id': 'P009', 'order_date': '2026-10-18', 'quantity': '2'}
+  [orders] quantity must be greater than 0: {'order_id': '5012', 'customer_id': '102', 'product_id': 'P007', 'order_date': '2026-10-20', 'quantity': '0'}
+  [orders] invalid order_date: {'order_id': '5014', 'customer_id': '104', 'product_id': 'P001', 'order_date': '2026-13-01', 'quantity': '1'}
+
+Fixed and flagged (not rejected):
+  customer 105: no email on record
+  customer 106: duplicate of 101 (same email), merged
+  customer 107: invalid phone '12345' stored as NULL
+  product P003: negative stock -3 set to 0 for review
+  order 5007: customer 106 remapped to 101

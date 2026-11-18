@@ -1,0 +1,32 @@
+%% ERD of the central integrated database (schema.sql).
+erDiagram
+    CUSTOMERS ||--o{ ORDERS : places
+    PRODUCTS ||--o{ ORDERS : "appears in"
+    CUSTOMERS ||--o{ CUSTOMER_ID_MAP : "survives as"
+
+    CUSTOMERS {
+        int customer_id PK
+        text first_name
+        text last_name
+        text address
+        text city
+        text phone
+        text email UK
+    }
+    PRODUCTS {
+        text product_id PK
+        text name
+        numeric price
+        int stock_qty
+    }
+    ORDERS {
+        int order_id PK
+        int customer_id FK
+        text product_id FK
+        date order_date
+        int quantity
+    }
+    CUSTOMER_ID_MAP {
+        int source_cust_id PK
+        int surviving_cust_id FK
+    }

@@ -1,0 +1,32 @@
+%% Integration flow: two sources plus the orders feed -> ETL -> central database.
+flowchart LR
+    CRM[("Customer Data System<br/>relational database")]
+    CSV["Product Data System<br/>products.csv"]
+    ORD["Orders feed<br/>orders.csv"]
+
+    subgraph ETL["ETL in integrate.py"]
+        direction TB
+        EX["Extract"]
+        TR["Transform<br/>clean and validate<br/>merge duplicates"]
+        LD["Load"]
+        EX --> TR --> LD
+    end
+
+    DB[("Central database<br/>central.db")]
+    REJ["rejected_records<br/>with reasons"]
+    Q["SQL queries<br/>and report"]
+
+    CRM --> EX
+    CSV --> EX
+    ORD --> EX
+    LD --> DB
+    TR -. "invalid rows" .-> REJ
+    DB --> Q
+
+    classDef src fill:#f5f5f5,stroke:#777777,stroke-width:1.2px,color:#111111
+    classDef step fill:#eef3fb,stroke:#1f4e8c,stroke-width:1.5px,color:#111111
+    classDef out fill:#ffffff,stroke:#333333,stroke-width:1.5px,color:#111111
+    class CRM,CSV,ORD src
+    class EX,TR,LD step
+    class DB,REJ,Q out
+    style ETL fill:#fbfcfe,stroke:#1f4e8c,stroke-width:2px

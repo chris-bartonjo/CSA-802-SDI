@@ -1,0 +1,10 @@
+product_id,name,price,stock_qty
+P001,Wireless Mouse,"1,250.00",40
+P002,USB-C Hub,3500,15
+P003,Laptop Stand,2800,-3
+P004,Mechanical Keyboard,KES 6500,12
+P005,HD Webcam,,20
+P006,Noise-Cancelling Headset,8900,7
+P002,USB-C Hub (duplicate row),3400,10
+P007,External SSD 1TB,12500,9
+P008,Monitor 24 inch,18000,5
